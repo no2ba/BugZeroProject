@@ -1,4 +1,4 @@
-# Selenium Automation Framework
+# Selenium Automation Framework 
 
 ## Installation
 1. Install Python 
