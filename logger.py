@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import date
+from datetime import datetime
 import webbrowser
 from config.settings import REPORTS_DIR
 
