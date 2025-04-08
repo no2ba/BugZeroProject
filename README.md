@@ -6,8 +6,6 @@
 3. Download ChromeDriver and place in project root
 
 ## Usage
-### Command Line:
-`python main.py [test_case_path.xlsx]`
 
 ### GUI:
 `python GUI.py`
