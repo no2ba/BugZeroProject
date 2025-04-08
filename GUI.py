@@ -68,7 +68,7 @@ class TestCaseGenerator:
 
         version_label = tk.Label(
             footer_frame,
-            text="BugZero v1.0 | © 2023 BugZero All Rights Reserved",
+            text="BugZero v1.0 | © 2025 BugZero All Rights Reserved",
             font=("Helvetica", 8),
             fg="white",
             bg=self.primary_color
