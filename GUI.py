@@ -119,8 +119,9 @@ class TestCaseGenerator:
             font=("Helvetica", 10)
         )
         self.command_dropdown.pack(side=tk.LEFT, padx=5)
-        self.command_var.trace_add('write', self._update_input_fields)
-
+        # BUG FIX #1: the callback name must match the actual method
+        # (was: self.update_fields, which does not exist -> AttributeError)
+        self.command_var.trace_add("write", self._update_input_fields)
 
         # Dynamic Fields Frame
         self.fields_frame = tk.Frame(main_frame, bg=self.bg_color)
@@ -199,6 +200,14 @@ class TestCaseGenerator:
         for widget in self.fields_frame.winfo_children():
             widget.destroy()
 
+        # BUG FIX #3 (support): drop any stale references from the
+        # previous command so _add_step's hasattr()/getattr() checks
+        # below don't pick up widgets that no longer exist on screen.
+        if hasattr(self, 'locator_entry'):
+            del self.locator_entry
+        if hasattr(self, 'value_entry'):
+            del self.value_entry
+
         command = self.command_var.get()
         template = self.translation_table.get(command, "")
 
@@ -227,14 +236,23 @@ class TestCaseGenerator:
 
         # Get locator if needed
         if '{locator}' in template:
-            locator = getattr(self, 'locator_entry', tk.Entry()).get()
+            # BUG FIX #3: don't build a throwaway tk.Entry() as a default;
+            # that expression is evaluated eagerly on every call whether
+            # or not it's used, leaking stray unparented widgets.
+            if not hasattr(self, 'locator_entry'):
+                messagebox.showwarning("Input Error", "Locator is required for this command")
+                return
+            locator = self.locator_entry.get()
             if not locator:
                 messagebox.showwarning("Input Error", "Locator is required for this command")
                 return
 
         # Get value if needed
         if '{value}' in template or '{url}' in template:
-            value = getattr(self, 'value_entry', tk.Entry()).get()
+            if not hasattr(self, 'value_entry'):
+                messagebox.showwarning("Input Error", "Value is required for this command")
+                return
+            value = self.value_entry.get()
             if not value and command != "Click":  # Click can have empty value
                 messagebox.showwarning("Input Error", "Value is required for this command")
                 return
@@ -326,6 +344,10 @@ class TestCaseGenerator:
             messagebox.showwarning("Execution Error", "No test case file loaded")
             return
 
+        # BUG FIX #2: initialize before the try block so the finally
+        # clause can never reference an unbound local variable if
+        # TestExecutor() itself raises.
+        executor = None
         try:
             # Create test executor
             executor = TestExecutor()
@@ -342,7 +364,7 @@ class TestCaseGenerator:
         except Exception as e:
             messagebox.showerror("Execution Error", f"Test execution failed: {str(e)}")
         finally:
-            if hasattr(executor, 'close') and callable(executor.close):
+            if executor is not None and hasattr(executor, 'close') and callable(executor.close):
                 executor.close()
 
 if __name__ == "__main__":
