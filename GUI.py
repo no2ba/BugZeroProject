@@ -119,7 +119,8 @@ class TestCaseGenerator:
             font=("Helvetica", 10)
         )
         self.command_dropdown.pack(side=tk.LEFT, padx=5)
-        self.command_var.trace('w', self._update_input_fields)
+        self.command_var.trace_add('write', self._update_input_fields)
+
 
         # Dynamic Fields Frame
         self.fields_frame = tk.Frame(main_frame, bg=self.bg_color)
